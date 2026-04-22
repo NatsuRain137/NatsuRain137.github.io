@@ -172,6 +172,96 @@
             color: #e29bc1;
         }
 
+        /* ======================
+           留言板样式
+        ====================== */
+        .message-board {
+            margin-top: 12px;
+        }
+        .message-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .message-input input {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(6px);
+            outline: none;
+            color: #b87a9c;
+            font-size: 14px;
+        }
+        .message-input button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(184, 122, 156, 0.4);
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+            backdrop-filter: blur(6px);
+        }
+        .message-input button:hover {
+            background: rgba(184, 122, 156, 0.6);
+        }
+        .message-list {
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+        .message-item {
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.4);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            color: #666;
+            font-size: 14px;
+        }
+        .message-item .name {
+            color: #b87a9c;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        .message-item .time {
+            color: #aaa;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        /* ======================
+           弹幕容器
+        ====================== */
+        #danmakuContainer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9998;
+            overflow: hidden;
+        }
+        .danmaku {
+            position: absolute;
+            left: 100%;
+            white-space: nowrap;
+            color: #b87a9c;
+            font-size: 14px;
+            background: rgba(255,255,255,0.3);
+            backdrop-filter: blur(6px);
+            padding: 6px 14px;
+            border-radius: 20px;
+            animation: danmaku 8s linear forwards;
+        }
+        @keyframes danmaku {
+            to { left: -200%; }
+        }
+
         /* 底部 */
         .footer {
             text-align: center;
@@ -183,6 +273,8 @@
 </head>
 
 <body>
+    <!-- 弹幕容器 -->
+    <div id="danmakuContainer"></div>
     <!-- 动态互动背景 -->
     <canvas id="bgCanvas"></canvas>
 
@@ -196,7 +288,7 @@
 
         <!-- 板块一：非自然文字研究会 + Cover Flow -->
         <div class="card glass">
-            <h2>非自然文字研究会</h2>
+            <h2>非自然文字研究会 Unnatural Characteristic</h2>
             <p>非自然文字研究会是一家专注于galgame（即恋爱冒险游戏）开发的组织（并不专一）。<br>
             我们致力于创造出引人入胜、打动人心的游戏作品，为玩家们带来难忘的体验。（似乎是这样）</p>
 
@@ -237,7 +329,7 @@
 
         <!-- 板块二：无色声匣（Cover Flow 专辑流 + B站视频） -->
         <div class="card glass">
-            <h2>无色声匣 Colorless Sound Box</h2>
+            <h2>无色声匣 CHROMA BLOOM</h2>
             <p>无色声匣是一支专注于原创音乐创作的独立乐队，用纯粹的声音传递最真实的情感。</p>
 
             <p>我们的音乐风格涵盖治愈、抒情、电子与轻摇滚，没有固定的色彩，却能勾勒出万千情绪。<br>
@@ -283,11 +375,88 @@
             <img src="./assets/ABC_post.png" alt="抽象漫画AbstractComic">
         </div>
 
+        <!-- ======================
+             新增：留言板板块
+        ====================== -->
+        <div class="card glass">
+            <h2>💌 留言板</h2>
+            <div class="message-board">
+                <div class="message-input">
+                    <input type="text" id="username" placeholder="请输入你的昵称~" maxlength="10">
+                    <input type="text" id="content" placeholder="说点什么吧..." maxlength="50">
+                    <button onclick="sendMessage()">发送留言</button>
+                </div>
+                <div class="message-list" id="messageList"></div>
+            </div>
+        </div>
+
         <!-- 底部 -->
         <div class="footer">
             Copyright © NatsuRain 2020-2030. All rights reserved.
         </div>
     </div>
+
+    <script>
+        // ======================
+        // 留言板 + 弹幕功能
+        // ======================
+        function getTime() {
+            let d = new Date();
+            return d.getFullYear() + "-" + 
+                   String(d.getMonth()+1).padStart(2,'0') + "-" + 
+                   String(d.getDate()).padStart(2,'0') + " " + 
+                   String(d.getHours()).padStart(2,'0') + ":" + 
+                   String(d.getMinutes()).padStart(2,'0');
+        }
+
+        // 加载本地留言
+        let messages = JSON.parse(localStorage.getItem('yumebanchi_msgs')) || [];
+
+        function renderMessages() {
+            let list = document.getElementById('messageList');
+            list.innerHTML = '';
+            messages.forEach(msg => {
+                let item = document.createElement('div');
+                item.className = 'message-item';
+                item.innerHTML = `<span class="name">${msg.name}</span>${msg.content}<span class="time">${msg.time}</span>`;
+                list.appendChild(item);
+            });
+            list.scrollTop = list.scrollHeight;
+        }
+
+        // 发送留言
+        function sendMessage() {
+            let name = document.getElementById('username').value.trim();
+            let content = document.getElementById('content').value.trim();
+            if(!name || !content) return alert('请填写昵称和留言内容！');
+            
+            let msg = { name, content, time: getTime() };
+            messages.push(msg);
+            if(messages.length > 50) messages = messages.slice(-50);
+            localStorage.setItem('yumebanchi_msgs', JSON.stringify(messages));
+            
+            document.getElementById('content').value = '';
+            renderMessages();
+            showDanmaku(msg);
+        }
+
+        // 弹幕显示
+        function showDanmaku(msg) {
+            let container = document.getElementById('danmakuContainer');
+            let dm = document.createElement('div');
+            dm.className = 'danmaku';
+            dm.innerText = `${msg.name}：${msg.content}`;
+            dm.style.top = Math.random() * 80 + 10 + '%';
+            container.appendChild(dm);
+            setTimeout(() => dm.remove(), 8000);
+        }
+
+        // 初始化
+        window.onload = () => {
+            renderMessages();
+            messages.forEach(msg => showDanmaku(msg));
+        };
+    </script>
 
     <!-- 动态背景JS：马卡龙几何 + 鼠标互动 -->
     <script>
