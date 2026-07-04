@@ -1,0 +1,226 @@
+@keyframes fade-in {
+    0% {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+body {
+    height: 100vh;
+    font-family: system-ui, sans-serif;
+    margin: 0;
+    overflow-y: auto;
+}
+
+header[topbar] {
+    padding: 10px 25px;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: #fff9;
+    box-shadow: 0 2px 10px #0009;
+    z-index: 2;
+}
+
+footer[bottombar] {
+    display: flex;
+    background: #3f3f3f;
+    color: #eaeaea;
+    align-items: center;
+    justify-content: space-between;
+    padding: 50px;
+}
+
+div[leftcontent] {
+    align-items: center;
+    justify-content: center;
+}
+
+div[rightcontent] {
+    align-items: center;
+    justify-content: center;
+}
+
+p {
+    margin: 0;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+p[everypoem] {
+    margin-left: 15px;
+}
+
+img[logo] {
+    width: 64px;
+    height: 64px;
+}
+
+img[logo-white] {
+    width: 96px;
+    height: auto;
+}
+
+footer[copyright] {
+    background: #1f1f1f;
+    color: #fff;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+p[ccopyright] {
+    margin-top: 3px;
+    font-size: 9px;
+    opacity: 0.3;
+}
+
+*[row] {
+    display: flex !important;
+    flex-direction: row !important;
+}
+
+*[column] {
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+p[title] {
+    font-size: 21px;
+    font-weight: bold;
+    align-self: flex-start;
+}
+
+*[white] {
+    color: white;
+}
+
+*[big] {
+    font-size: 50px !important;
+    font-family: "Minecraft AE";
+    font-weight: initial !important;
+    animation: fade-in 0.75s ease;
+}
+
+section[firstpage] {
+    background: url(../images/xijiao.png);
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+*[backblur] {
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+}
+
+div[button] {
+    padding: 12px 25px;
+    border-radius: 10px;
+    background: #fff9;
+    width: auto;
+    height: auto;
+    display: inline-flex;
+    font-size: 20px;
+    opacity: 0;
+    animation: fade-in 0.75s ease forwards;
+    animation-delay: 0.1s;
+    margin-top: 20px;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: pointer;
+}
+
+div[content] {
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    height: auto;
+}
+
+img[background] {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+
+section[transparent] {
+    width: 100%;
+    height: 40%;
+    background: transparent;
+}
+
+section[secondpage] {
+    background: url(../images/members.png), #272aae;
+    width: 100%;
+    height: 100%;
+    background-size: 110%;
+    background-position: -150% 65%;
+    background-repeat: no-repeat;
+    /* background-attachment: fixed; */
+}
+
+div[leftside] {
+    background: linear-gradient(90deg, #272AAE 15%, #fff0 100%);
+    width: 100%;
+    height: 100%;
+    color: white;
+    align-items: flex-start !important;
+    justify-content: center;
+    padding-left: 75px;
+}
+
+p[text] {
+    line-height: 2;
+    font-size: 20px;
+}
+
+div[gotop] {
+    width: 50px;
+    height: auto;
+    padding-top: 20px;
+    padding-left: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #272aae;
+    opacity: 0;
+    color: white;
+    font-family: "Minecraft AE";
+    font-size: 30px;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    cursor: pointer;
+    box-shadow: 0 2px 10px #0009;
+}
+
+div[gotop] div {
+    width: 100%;
+    height: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
