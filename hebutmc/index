@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HebutMC</title>
+    <link rel="icon" href="favicon.ico" />
+    <link rel="stylesheet" href="assets/css/index.css" />
+    <link rel="stylesheet" href="assets/css/font.css" />
+    <style>
+        /* ===== 0. 全局纯直角规范 ===== */
+        * {
+            border-radius: 0 !important;
+        }
+
+        body {
+            font-family: 'Consolas', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f6f9; 
+            color: #102a43; 
+        }
+
+        /* 🔥 核心修改：去掉白色图层遮罩，背景图 100% 完全显现 */
+        img[background] {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            z-index: -1;
+            opacity: 1 !important; /* 移除白蒙版，完全不透明 */
+            filter: none !important;  /* 移除灰度滤镜，展现原本色彩 */
+            pointer-events: none;
+        }
+
+        header, section, footer, .gotop {
+            position: relative;
+            z-index: 5;
+        }
+
+        /* ===== 1. 顶部栏：低饱和蓝灰纯色块 + 毛玻璃 ===== */
+        header[topbar] {
+            background: rgba(240, 244, 248, 0.8) !important;
+            backdrop-filter: blur(16px) !important;
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 3px solid #1d3557 !important; 
+            box-shadow: 0 4px 30px rgba(16, 42, 67, 0.04) !important;
+        }
+
+        header[topbar] p[title], header[topbar] p[everypoem] {
+            color: #1d3557 !important;
+            font-weight: 700;
+        }
+
+        section[firstpage] p[title] {
+            color: #1d3557 !important;
+            text-shadow: 0 2px 10px rgba(255, 255, 255, 0.8);
+        }
+
+        /* 介绍区域：在清晰背景上表现出高斯折射 */
+        section.secondpage .leftside {
+            background: rgba(255, 255, 255, 0.85) !important;
+            backdrop-filter: blur(16px) !important;
+            -webkit-backdrop-filter: blur(16px);
+            border: none !important; 
+            box-shadow: 12px 12px 0px rgba(16, 42, 67, 0.15); 
+        }
+        section.secondpage .leftside p[title] { color: #102a43 !important; }
+        section.secondpage .leftside p[text] { color: #334e68 !important; }
+
+        /* ===== 2. 第三页：地图容器 ===== */
+        .embed-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 1280px;
+            margin: 30px auto 40px;
+            padding: 0 16px;
+            box-sizing: border-box;
+            z-index: 20;
+        }
+
+        .embed-container {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 56.25%;
+            overflow: hidden;
+            background: #d9e2ec; 
+            border: none; 
+            box-shadow: 16px 16px 0px rgba(16, 42, 67, 0.15);
+        }
+
+        .embed-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+            background: #ffffff;
+        }
+
+        /* ===== 3. 第二页：Flow 横向卡片流 ===== */
+        .flow-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 1280px;
+            margin: 20px auto 40px;
+            padding: 0 16px;
+            box-sizing: border-box;
+            z-index: 20;
+        }
+
+        .flow-container {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            background: rgba(234, 241, 247, 0.65) !important; 
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px);
+            border: none;
+            box-shadow: 16px 16px 0px rgba(16, 42, 67, 0.15);
+        }
+
+        .flow-scroll {
+            display: flex;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-snap-type: x mandatory;
+            padding: 24px;
+            gap: 20px;
+            min-height: 360px;
+            scrollbar-width: thin;
+            scrollbar-color: #9fb3c8 transparent;
+        }
+
+        .flow-scroll::-webkit-scrollbar { height: 6px; }
+        .flow-scroll::-webkit-scrollbar-thumb { background: #9fb3c8; }
+
+        .flow-item {
+            flex: 0 0 320px;
+            scroll-snap-align: start;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 24px;
+            border: none; 
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            min-height: 320px;
+            box-sizing: border-box;
+            box-shadow: 4px 4px 12px rgba(16, 42, 67, 0.04);
+        }
+
+        .flow-item:hover {
+            transform: translateY(-4px);
+            background: #ffffff;
+            box-shadow: 12px 12px 0px rgba(16, 42, 67, 0.12);
+        }
+
+        .flow-item .item-label {
+            display: inline-block;
+            background: #102a43;
+            padding: 4px 12px;
+            font-size: 11px;
+            color: #ffffff;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+            align-self: flex-start;
+        }
+
+        .flow-item .real-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .flow-item .real-content .title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #102a43;
+            margin-bottom: 16px;
+        }
+
+        .flow-item .real-content .desc {
+            font-size: 14px;
+            line-height: 1.6;
+            flex: 1;
+        }
+
+        .flow-item .real-content .media-placeholder {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #d9e2ec; 
+            border: none; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #486581; 
+            font-size: 13px;
+            font-weight: 600;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        
+        .flow-item:hover .media-placeholder {
+            background: #bcccdc; 
+        }
+
+        .text-line {
+            height: 12px;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+        .text-line:nth-child(1) { background: #9fb3c8; width: 90%; } 
+        .text-line:nth-child(2) { background: #bcdcdc; width: 75%; } 
+        .text-line:nth-child(3) { background: #d9e2ec; width: 55%; } 
+
+        .flow-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding: 16px 0;
+            background: rgba(255, 255, 255, 0.6);
+            position: relative;
+            z-index: 25;
+        }
+
+        .flow-dot {
+            width: 16px;
+            height: 4px;
+            background: #bcdcdc; 
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            padding: 0;
+        }
+
+        .flow-dot.active {
+            background: #f97316; 
+            width: 32px;
+        }
+
+        .flow-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #ffffff;
+            border: none;
+            color: #102a43;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 30;
+            transition: all 0.15s ease;
+            box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .flow-nav-btn:hover {
+            background: #f97316; 
+            color: #ffffff;
+        }
+
+        .flow-nav-btn.prev { left: 0; }
+        .flow-nav-btn.next { right: 0; }
+
+        /* ===== 4. 右侧固定直角导航栏 ===== */
+        .page-nav-wrapper {
+            position: fixed;
+            right: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .page-nav-wrapper .page-nav { pointer-events: auto; }
+
+        .page-nav {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 2px;
+            margin: 0;
+            padding: 4px;
+            background: rgba(255, 255, 255, 0.85) !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px);
+            border: none;
+            box-shadow: 8px 8px 0px rgba(16, 42, 67, 0.15);
+        }
+
+        .page-nav .page-btn {
+            background: transparent;
+            border: none;
+            color: #486581;
+            font-size: 13px;
+            padding: 10px 18px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .page-nav .page-btn:hover {
+            color: #f97316;
+            background: #ffedd5; 
+        }
+
+        .page-nav .page-btn.active {
+            color: #ffffff !important;
+            background: #f97316 !important;
+            font-weight: 700;
+        }
+
+        .page-container {
+            display: block;
+            width: 100%;
+            scroll-margin-top: 100px;
+        }
+
+        .page-container.hidden { display: none; }
+
+        /* ===== 5. 🔥 页脚系统：全面重构为深色体系 ===== */
+        footer[bottombar] {
+            background: #102a43 !important; /* 深工业蓝 */
+            border-top: 4px solid #f97316 !important; /* 强力橙色撞色切线 */
+            padding: 60px 40px !important;
+            color: #ffffff !important;
+        }
+
+        footer[bottombar] p[title] {
+            color: #ffffff !important;
+            font-weight: 700;
+        }
+
+        footer[bottombar] p, footer[bottombar] a { 
+            color: #bcccdc !important; /* 调整为高可读性的浅蓝灰字 */
+            text-shadow: none; 
+        }
+        
+        footer[bottombar] a:hover { 
+            color: #f97316 !important; /* 悬浮撞橙 */
+        }
+
+        footer[copyright] {
+            background: #091e36 !important; /* 最底层：极深工业夜空蓝 */
+            border: none !important;
+            padding: 20px !important;
+        }
+        footer[copyright] p { 
+            color: #627d98 !important; 
+        }
+        footer[copyright] p a {
+            color: #bcccdc !important;
+            text-decoration: none;
+        }
+        footer[copyright] p a:hover {
+            color: #f97316 !important;
+        }
+
+        .gotop div {
+            background: #ffffff !important;
+            border: none !important;
+            color: #102a43 !important;
+            box-shadow: 4px 4px 0px rgba(16, 42, 67, 0.2);
+        }
+        .gotop div:hover {
+            background: #f97316 !important;
+            color: #ffffff !important;
+        }
+
+        @media (max-width: 768px) {
+            .embed-wrapper { padding: 0 8px; margin: 20px auto 30px; }
+            .flow-item { flex: 0 0 280px; padding: 16px; min-height: 280px; }
+            .flow-scroll { padding: 16px 12px; gap: 12px; min-height: 300px; }
+            .flow-nav-btn { width: 36px; height: 36px; }
+            .page-nav-wrapper { right: 8px; }
+            .page-nav .page-btn { font-size: 12px; padding: 8px 12px; }
+        }
+    </style>
+</head>
+<body>
+    <img src="assets/images/ground.png" background alt="background" />
+
+    <header topbar row>
+        <div leftcontent row>
+            <img logo src="assets/images/logo.png" style="cursor: pointer" onclick="window.location = '#'" />
+            <p title style="cursor: pointer"></p>
+            <p everypoem>每日一诗</p>
+        </div>
+    </header>
+
+    <section firstpage>
+        <div content column>
+            <p title big style="color: #ffffff;">HebutMC x Minecraft</p>
+        </div>
+    </section>
+    <section transparent></section>
+
+    <section secondpage row>
+        <div leftcontent leftside column>
+            <p title style="margin-bottom: 20px; font-size: 35px; font-weight:700;">介绍</p>
+            <p text>我们是自发的河北工业大学Minecraft爱好者社群，<br />
+                致力于给Hebuters提供一个温馨的Minecraft游玩氛围，<br />
+                参与MUA中国Minecraft高校联盟交流，<br />
+                希望各位可以在这里传递Minecraft的热情☆〜（ゝ。∂）</p>
+        </div>
+    </section>
+
+    <div class="page-nav-wrapper">
+        <div class="page-nav" id="pageNav">
+            <button class="page-btn active" data-page="1">首页</button>
+            <button class="page-btn" data-page="2">服务器</button>
+            <button class="page-btn" data-page="3">复原工程</button>
+        </div>
+    </div>
+
+    <div class="page-container" id="page1">
+        <div style="max-width:1280px; margin:20px auto 40px; padding:16px; color:#102a43; text-align:center; font-size:15px; font-weight:600; letter-spacing: 2px; background: rgba(255, 255, 255, 0.85); box-shadow: 4px 4px 12px rgba(0,0,0,0.05);">
+            勤慎公忠助理想 工学并举薪火长
+        </div>
+    </div>
+
+    <div class="page-container hidden" id="page2">
+        <div style="max-width:1280px; margin:20px auto 40px; padding:16px; color:#102a43; text-align:center; font-size:15px; font-weight:600; letter-spacing: 2px; background: rgba(255, 255, 255, 0.85); box-shadow: 4px 4px 12px rgba(0,0,0,0.05);">
+            你是否热爱挖掘、建造、探险，甚至与朋友们并肩作战？<br/>
+            如果你的内心有着创造的火焰，那么这里是你的新家！
+        </div>
+        <div class="flow-wrapper">
+            <div class="flow-container">
+                <div class="flow-scroll" id="flowScroll">
+                    
+                    <div class="flow-item">
+                        <span class="item-label">生电</span>
+                        <div class="real-content">
+                            <div class="title">一期大地图</div>
+                            <img src="./assets/images/map.png" alt="一期生电大地图" style="width: 720px; height: auto; border: 2px solid #d9e2ec; box-shadow: 4px 4px 12px rgba(16, 42, 67, 0.04);" />
+                        </div>
+                    </div>
+
+                    <div class="flow-item">
+                        <span class="item-label" style="background: #f97316;">生电</span>
+                        <div class="real-content">
+                            <div class="title">生电一期</div>
+                            <iframe src="https://player.bilibili.com/player.html?bvid=BV1x5b4eJEhr&p=1" style="width: 720px; height: 405px;" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true">
+
+                            </iframe>
+                        </div>
+                    </div>
+
+                    <div class="flow-item">
+                        <span class="item-label">生电</span>
+                        <div class="real-content">
+                            <div class="title"></div>
+                            <img src="./assets/images/shengdian.png" alt="生电一期大地图" style="width: auto; height: 720px; border: 2px solid #d9e2ec; box-shadow: 4px 4px 12px rgba(16, 42, 67, 0.04);" />
+                        </div>
+                    </div>
+                </div>
+                <div class="flow-scroll" id="flowScroll">
+
+                    <div class="flow-item">
+                        <span class="item-label" style="background: #f97316;">生电</span>
+                        <div class="real-content">
+                            <div class="title">生电三期</div>
+                            <iframe src="https://player.bilibili.com/player.html?isOutside=true&aid=115427229304480&bvid=BV1TAs7zrEmA&cid=33346618147&p=1" style="width: 720px; height: 405px;"scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
+                        </div>
+                    </div>
+                    
+                    <div class="flow-item">
+                        <span class="item-label">生电</span>
+                        <div class="real-content">
+                            <div class="title"></div>
+                            <img src="./assets/images/dancing.gif">
+                        </div>
+                        <div class="text-line"></div>
+                                <div class="text-line"></div>
+                                <div class="text-line"></div>
+                        </div>
+                    </div>
+
+                    <div class="flow-item" style="background: #ffedd5;">
+                        <span class="item-label" style="background: #f97316;">更多</span>
+                        <div class="real-content" style="justify-content: center; align-items: center; text-align: center;">
+                            <div style="font-size: 32px; color: #f97316; margin-bottom: 4px;">qwq</div>
+                            <div style="color: #ea580c; font-size: 16px; font-weight: 700;">更多内容</div>
+                            <div style="margin-top: 16px; padding: 8px 20px; background: #f97316; color: #ffffff; font-size: 13px; font-weight:700; cursor: pointer; box-shadow: 4px 4px 0px #ea580c;">
+                                waiting for update...
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+
+                <button class="flow-nav-btn prev" id="flowPrev">‹</button>
+                <button class="flow-nav-btn next" id="flowNext">›</button>
+            </div>
+
+            <div class="flow-dots" id="flowDots"></div>
+        </div>
+    </div>
+
+    <div class="page-container hidden" id="page3">
+        <div class="embed-wrapper">
+            <div style="max-width:1280px; margin:20px auto 40px; padding:16px; color:#102a43; text-align:center; font-size:15px; font-weight:600; letter-spacing: 2px; background: rgba(255, 255, 255, 0.85); box-shadow: 4px 4px 12px rgba(0,0,0,0.05);">
+            复原服实时地图
+        </div>
+            <div class="embed-container">
+                <iframe 
+                    src="http://103.39.66.188:8234/" 
+                    allowfullscreen 
+                    loading="lazy"
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+                ></iframe>
+            </div>
+            <div class="flow-container">
+                <div class="flow-scroll" id="flowScroll">
+                    <div class="flow-item">
+                        <span class="item-label">复原工程</span>
+                        <div class="text">
+                            <p text>由HebutMC领导以Minecraft为载体的复建工程<br />
+                            意在以虚拟存档方式复刻校园全貌<br />
+                            提供游览其至线上活动举办的虚拟平台</p>
+                        </div>
+                    </div>
+
+                    <div class="flow-item">
+                        <span class="item-label">北辰</span>
+                        <div class="real-content">
+                            <div class="title"></div>
+                            <img src="./assets/images/ground.png"  style="width: auto; height: 405px; border: 2px solid #d9e2ec; box-shadow: 4px 4px 12px rgba(16, 42, 67, 0.04);" />
+                        </div>
+                    </div>
+
+                    <div class="flow-item">
+                        <span class="item-label">北辰</span>
+                        <div class="real-content">
+                            <div class="title"></div>
+                            <img src="./assets/images/building.png"  style="width: auto; height: 405px; border: 2px solid #d9e2ec; box-shadow: 4px 4px 12px rgba(16, 42, 67, 0.04);" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flow-scroll" id="flowScroll">
+                    <div class="flow-item">
+                        <span class="item-label" style="background: #f97316;">复原工程</span>
+                        <div class="real-content">
+                            <div class="title">在方块世界走进工大历史</div>
+                            <iframe src="https://player.bilibili.com/player.html?isOutside=true&aid=114997816527452&bvid=BV1sRtbzjEf2&cid=31584944747&p=1" style="width: 720px; height: 405px;" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
+                        </div>
+                    </div>
+
+                    <div class="flow-item">
+                        <span class="item-label" style="background: #f97316;">复原工程</span>
+                        <div class="real-content">
+                            <div class="title">像素中的河北工大</div>
+                            <iframe src="https://player.bilibili.com/player.html?isOutside=true&aid=114480457450808&bvid=BV1ZBV9zAEKa&cid=29879635963&p=1" style="width: 720px; height: 405px;" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer bottombar>
+        <div leftcontent row>
+            <img logo-white src="assets/images/logo-white.png" style="filter: drop-shadow(0px 4px 10px rgba(0,0,0,0.3));" />
+            <div rightcontent>
+                <p title>HebutMC</p>
+                <p subtitle>河北工业大学MC社</p>
+            </div>
+        </div>
+        <div rightcontent column>
+            <p title>相关链接</p>
+            <a href="https://www.mualliance.cn/" target="_blank">MUA联盟</a>
+            <a href="https://space.bilibili.com/3546687077354443/dynamic" target="_blank">BiliBili</a>
+            <a href="https://v.douyin.com/if3Q7PDY/" target="_blank">抖音主页</a>
+            <a href="http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=YY3wABPktYoc8ieL_RBVBlATli8vrXKy&authKey=EB9hjr8JwIGeE5%2F%2BrKSupQQUsvRk5A08WIgGMiDjFkENMTmBx1ktv4CySDqU42kT&noverify=0&group_code=838047908" target="_blank">QQ官方群</a>
+            <a href="http://docs.mc.nankai.club" target="_blank">NKU紫珀社文档站</a>
+        </div>
+    </footer>
+    <footer copyright>
+        <p copyright>Copyright &copy; 2023 - 2026 Hebut MC</p>
+        <p ccopyright>Powered by <a href="https://www.ccstudio.top" target="_blank">CodeCrafter Studio</a></p>
+    </footer>
+    <div gotop>
+        <div><p style="font-weight: bold;">^</p></div>
+    </div>
+
+    <script src="https://sdk.jinrishici.com/v2/browser/jinrishici.js" charset="utf-8"></script>
+    <script type="text/javascript">
+        jinrishici.load(function (result) {
+            document.querySelector("p[everypoem]").innerHTML = result.data.content;
+        })
+    </script>
+
+    <script>
+        (function() {
+            const page1 = document.getElementById('page1');
+            const page2 = document.getElementById('page2');
+            const page3 = document.getElementById('page3');
+            const navBtns = document.querySelectorAll('.page-nav .page-btn');
+
+            function showPage(pageId) {
+                page1.classList.add('hidden');
+                page2.classList.add('hidden');
+                page3.classList.add('hidden');
+                
+                let targetPage = null;
+                if (pageId === '1') targetPage = page1;
+                if (pageId === '2') targetPage = page2;
+                if (pageId === '3') targetPage = page3;
+
+                if (targetPage) {
+                    targetPage.classList.remove('hidden');
+                    setTimeout(() => {
+                        targetPage.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'start' 
+                        });
+                    }, 40);
+                }
+
+                navBtns.forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.page === pageId);
+                });
+
+                setTimeout(() => {
+                    if (typeof window.updateDotsFromScroll === 'function') {
+                        window.updateDotsFromScroll();
+                    }
+                }, 350);
+            }
+
+            navBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    showPage(this.dataset.page);
+                });
+            });
+
+            page1.classList.remove('hidden');
+            page2.classList.add('hidden');
+            page3.classList.add('hidden');
+        })();
+
+        (function() {
+            const scrollContainer = document.getElementById('flowScroll');
+            const prevBtn = document.getElementById('flowPrev');
+            const nextBtn = document.getElementById('flowNext');
+            const dotsContainer = document.getElementById('flowDots');
+            const items = scrollContainer.querySelectorAll('.flow-item');
+            const totalItems = items.length;
+
+            dotsContainer.innerHTML = '';
+            for (let i = 0; i < totalItems; i++) {
+                const dot = document.createElement('button');
+                dot.className = 'flow-dot' + (i === 0 ? ' active' : '');
+                dot.setAttribute('data-index', i);
+                dot.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    items[index].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+                    updateDots(index);
+                });
+                dotsContainer.appendChild(dot);
+            }
+
+            const dots = dotsContainer.querySelectorAll('.flow-dot');
+            function updateDots(activeIndex) {
+                dots.forEach((dot, i) => { dot.classList.toggle('active', i === activeIndex); });
+            }
+
+            window.updateDotsFromScroll = function() {
+                const scrollLeft = scrollContainer.scrollLeft;
+                const containerWidth = scrollContainer.clientWidth;
+                let minDist = Infinity;
+                let closestIndex = 0;
+                items.forEach((item, i) => {
+                    const itemLeft = item.offsetLeft - scrollContainer.offsetLeft;
+                    const center = itemLeft + item.offsetWidth / 2;
+                    const viewCenter = scrollLeft + containerWidth / 2;
+                    const dist = Math.abs(center - viewCenter);
+                    if (dist < minDist) { minDist = dist; closestIndex = i; }
+                });
+                updateDots(closestIndex);
+            };
+
+            scrollContainer.addEventListener('scroll', window.updateDotsFromScroll);
+            prevBtn.addEventListener('click', () => { scrollContainer.scrollBy({ left: -scrollContainer.clientWidth * 0.8, behavior: 'smooth' }); });
+            nextBtn.addEventListener('click', () => { scrollContainer.scrollBy({ left: scrollContainer.clientWidth * 0.8, behavior: 'smooth' }); });
+        })();
+    </script>
+    <script src="assets/js/background.js"></script>
+</body>
+</html>
